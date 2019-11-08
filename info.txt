@@ -1,0 +1,13 @@
+ ------ Building recommenders ------
+
+Two things needed:
+- 'fit' function to train our model
+- 'recommend' function that uses our model to recommend
+
+# In order to evaluate our recommender we have to define:
+- A splitting of the data in URM_train and URM_test
+- An evaluation metric
+- A functon computing the evaluation for each user
+
+## The splitting of the data is very important to ensure your algorithm is evaluated in a
+    realistic scenario by using test it has never seen.
