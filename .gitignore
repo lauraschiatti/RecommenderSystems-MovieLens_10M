@@ -2,7 +2,7 @@
 .DS_Store
 
 # Ignore PyCharm files
-.idea/
+.idea
 
 # Byte-compiled / optimized / DLL files
 __pycache__

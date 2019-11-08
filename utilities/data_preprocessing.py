@@ -1,17 +1,16 @@
+#!/usr/local/bin/python3.6
 # -*- coding: utf-8 -*-
-# -*- python 3.7.3 -*-
 
-# Utilities Module
+# data_preprocessing.py: module for loading and preparing data. And displaying some statistics.
+
 from urllib.request import urlretrieve
 import zipfile, os
 import matplotlib.pyplot as pyplot
 import scipy.sparse as sps
 import numpy as np
 
-# ------------------------------------------------------------------ #
-# Load and prepare data
-# ------------------------------------------------------------------ #
-def loadAndPrepareData():
+
+def load_and_prepare_data():
     print("\nLoading data ... ", end="\n")
 
     # Download data
@@ -35,7 +34,7 @@ def loadAndPrepareData():
     URMTuples = []
 
     for line in URMFile:
-        URMTuples.append(rowSplit(line))
+        URMTuples.append(row_split(line))
 
     # Separate the four columns in different independent lists
     userList, itemList, ratingList, timestampList = zip(*URMTuples)  # join tuples together (zip() to map values)
@@ -55,7 +54,8 @@ def loadAndPrepareData():
 
     return userList, itemList, ratingList, timestampList, URMSparse
 
-def dataSplitting(userList, itemList, ratingList, URMSparse, trainTestSplit):
+
+def data_splitting(userList, itemList, ratingList, URMSparse, trainTestSplit):
     numInteractions = URMSparse.nnz  # number of nonzero values
 
     # take random samples of data.
@@ -78,10 +78,7 @@ def dataSplitting(userList, itemList, ratingList, URMSparse, trainTestSplit):
     return URMTrain, URMTest
 
 
-# ------------------------------------------------------------------ #
-# Display some statistics
-# ------------------------------------------------------------------ #
-def displayStatistics(userList, itemList, URMSparse):
+def display_statistics(userList, itemList, URMSparse):
     print("\nDisplay statistics ... ")
 
     # Number of interactions in the URM
@@ -92,7 +89,7 @@ def displayStatistics(userList, itemList, URMSparse):
         numberInteractions += 1
     print("The number of interactions is {} \n".format(numberInteractions))
 
-    userListUnique, itemListUnique = getUserItemUnique(userList, itemList) # to convert set into a list
+    userListUnique, itemListUnique = get_user_item_unique(userList, itemList) # to convert set into a list
 
     numUsers = len(userListUnique)
     numItems = len(itemListUnique)
@@ -163,7 +160,8 @@ def displayStatistics(userList, itemList, URMSparse):
     pyplot.xlabel('User Index')
     pyplot.show()
 
-def ratingDistributionOverTime(timestampList):
+
+def rating_distribution_over_time(timestampList):
     print("\nRating distribution over time ... ", end="\n")
     # Clone the list to avoid changing the ordering of the original data
     timestamp_sorted = list(timestampList)
@@ -174,8 +172,10 @@ def ratingDistributionOverTime(timestampList):
     pyplot.xlabel('Item Index')
     pyplot.show()
 
-# Function to separate user, item, rating and timestamp ### file format: 1::364::5::838983707
-def rowSplit(rowString):
+
+def row_split(rowString):
+    # Separate user, item, rating and timestamp
+    # file format: 1::364::5::838983707
     split = rowString.split("::")
     split[3] = split[3].replace("\n", "")
 
@@ -187,7 +187,8 @@ def rowSplit(rowString):
     result = tuple(split)
     return result
 
-def getUserItemUnique(userList, itemList):
+
+def get_user_item_unique(userList, itemList):
     userListUnique = list(set(userList))  # to convert set into a list
     itemListUnique = list(set(itemList))
     
