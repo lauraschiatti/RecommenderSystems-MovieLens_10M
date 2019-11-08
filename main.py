@@ -6,12 +6,12 @@
 from utilities import data_preprocessing as data, evaluation_metrics as eval
 import random_recommender as rr
 
-# Data: movielens 10 million dataset
+# Load and prepare ata: movielens 10 million dataset
 userList, itemList, ratingList, timestampList, URMSparse = data.load_and_prepare_data()
 
-# Statistics on user-item interactions
-data.display_statistics(userList, itemList, URMSparse)
-data.rating_distribution_over_time(timestampList)
+# Statistics on interactions
+# data.display_statistics(userList, itemList, URMSparse)
+# data.rating_distribution_over_time(timestampList)
 
 
 # ------------------------------------------------------------------ #
@@ -36,3 +36,6 @@ relevantItems = eval.get_relevant_items(userId, URMTest) # relevant items for a 
 print("Relevant items", relevantItems)
 isRelevant = eval.is_relevant(recommendedItems, relevantItems)
 print("Are recommended items relevant?", isRelevant)
+
+eval.evaluate_algorithm(URMTest, randomRecommender, userListUnique)
+
