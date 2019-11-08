@@ -49,11 +49,9 @@ def evaluate_algorithm(URMTest, recommenderObject, userListUnique, at=5):
     cumulativePrecision = 0.0
     cumulativeRecall = 0.0
     cumulativeMAP = 0.0
-
     numEval = 0
 
     for userId in userListUnique:
-
         relevantItems = URMTest[userId].indices
 
         if len(relevantItems) > 0:

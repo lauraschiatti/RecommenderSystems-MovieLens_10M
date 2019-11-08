@@ -60,8 +60,7 @@ def data_splitting(userList, itemList, ratingList, URMSparse, trainTestSplit):
 
     # take random samples of data.
     # Use random boolean mask. p trainTestSplit for True and 1-trainTestSplit for False
-    trainMask = np.random.choice([True, False], numInteractions,
-                                 p=[trainTestSplit, 1 - trainTestSplit]) # p: probabs associated with each entry in a
+    trainMask = np.random.choice([True, False], numInteractions,p=[trainTestSplit, 1 - trainTestSplit])
 
     userList = np.array(userList)
     itemList = np.array(itemList)
@@ -79,7 +78,7 @@ def data_splitting(userList, itemList, ratingList, URMSparse, trainTestSplit):
 
 
 def display_statistics(userList, itemList, URMSparse):
-    print("\nDisplay statistics ... ")
+    print("\nStatistics ... ")
 
     # Number of interactions in the URM
     URMFile.seek(0)
@@ -101,15 +100,10 @@ def display_statistics(userList, itemList, URMSparse):
 
     print("Sparsity {:.2f} %\n".format((1 - float(numberInteractions) / (numItems * numUsers)) * 100))
 
-    # Item Popularity
-    itemPopularity = (URMSparse > 0).sum(axis=0)
-    itemPopularity = np.array(itemPopularity).squeeze()
-    itemPopularity = np.sort(itemPopularity)
+    # Item popularity
+    itemPopularity = item_popularity(URMSparse)
 
-    pyplot.plot(itemPopularity, 'ro')
-    pyplot.ylabel('Num Interactions ')
-    pyplot.xlabel('Item Index')
-    pyplot.show()
+    plot_data(itemPopularity, 'ro', 'Num Interactions', 'Item Index')
 
     tenPercent = int(numItems / 10)
 
@@ -128,7 +122,6 @@ def display_statistics(userList, itemList, URMSparse):
     print("Number of items with zero interactions {}".
           format(np.sum(itemPopularity == 0)))
 
-
     itemPopularityNonzero = itemPopularity[itemPopularity > 0]
 
     tenPercent = int(len(itemPopularityNonzero) / 10)
@@ -145,32 +138,23 @@ def display_statistics(userList, itemList, URMSparse):
     print("Average per-item interactions for the median 10% popular items {:.2f}".
           format(itemPopularityNonzero[int(numItems * 0.45):int(numItems * 0.55)].mean()))
 
-    pyplot.plot(itemPopularityNonzero, 'ro')
-    pyplot.ylabel('Num Interactions ')
-    pyplot.xlabel('Item Index')
-    pyplot.show()
+    plot_data(itemPopularityNonzero, 'ro', 'Num Interactions', 'Item Index')
 
     # User Activity
     userActivity = (URMSparse > 0).sum(axis=1)
     userActivity = np.array(userActivity).squeeze()
     userActivity = np.sort(userActivity)
 
-    pyplot.plot(userActivity, 'ro')
-    pyplot.ylabel('Num Interactions ')
-    pyplot.xlabel('User Index')
-    pyplot.show()
+    plot_data(userActivity, 'ro', 'Num Interactions', 'User Index')
 
 
 def rating_distribution_over_time(timestampList):
     print("\nRating distribution over time ... ", end="\n")
     # Clone the list to avoid changing the ordering of the original data
-    timestamp_sorted = list(timestampList)
-    timestamp_sorted.sort()
+    timestampSorted = list(timestampList)
+    timestampSorted.sort()
 
-    pyplot.plot(timestamp_sorted, 'ro')
-    pyplot.ylabel('Timestamp ')
-    pyplot.xlabel('Item Index')
-    pyplot.show()
+    plot_data(timestampSorted, 'ro', 'Timestamp', 'Item Index')
 
 
 def row_split(rowString):
@@ -193,3 +177,20 @@ def get_user_item_unique(userList, itemList):
     itemListUnique = list(set(itemList))
     
     return userListUnique, itemListUnique
+
+
+def plot_data(data, marker, yLabel, xLabel):
+    pyplot.plot(data, marker)
+    pyplot.xlabel(xLabel)
+    pyplot.ylabel(yLabel)
+    pyplot.show()
+
+
+def item_popularity(URMSparse):
+    print("\n Item popularity ... ")
+    itemPopularity = (URMSparse > 0).sum(axis=0)
+    itemPopularity = np.array(itemPopularity).squeeze()
+    itemPopularity = np.sort(itemPopularity)
+
+    return itemPopularity
+
