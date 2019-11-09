@@ -11,32 +11,33 @@ import scipy.sparse as sps
 
 URMFile = ""
 
-def parse_data(file):
+def parse_data(file, isURM):
     print("\nLoading data ... ", end="\n")
 
     matrixPath = download_data(file)
     matrixFile = open(matrixPath, 'r') # read file's content
 
-    global URMFile
-    URMFile = matrixFile
+    if isURM == True:
+        global URMFile
+        URMFile = matrixFile
 
     # Create a tuple for each interaction (line in the file)
     matrixFile.seek(0)  # start from beginning of the file
     matrixTuples = []
 
     for line in matrixFile:
-        matrixTuples.append(row_split(line))
+        matrixTuples.append(row_split(line, isURM))
 
     # Separate the four columns in different independent lists
-    userList, itemList, ratingList, timestampList = zip(*matrixTuples)  # join tuples together (zip() to map values)
+    userList, itemList, contentList, timestampList = zip(*matrixTuples)  # join tuples together (zip() to map values)
 
     # Convert values to list
     userList = list(userList)
     itemList = list(itemList)
-    ratingList = list(ratingList)
+    contentList = list(contentList)
     timestampList = list(timestampList)
 
-    return userList, itemList, ratingList, timestampList
+    return userList, itemList, contentList, timestampList
 
 
 def download_data(file):
@@ -73,16 +74,20 @@ def data_splitting(userList, itemList, ratingList, URM, trainTestSplit):
 
     return URMTrain, URMTest
 
-
-# Separate user, item, rating and timestamp
-def row_split(rowString):
+# Separate user, item, rating (or tag) and timestamp
+def row_split(rowString, isURM):
     # file format: 1::364::5::838983707
     split = rowString.split("::")
     split[3] = split[3].replace("\n", "")
 
     split[0] = int(split[0])
     split[1] = int(split[1])
-    split[2] = float(split[2])
+
+    if isURM == True:
+        split[2] = float(split[2])  # rating is a float
+    elif isURM == False:
+        split[2] = str(split[2])  # tag is a string, not a float like the rating
+
     split[3] = int(split[3])
 
     result = tuple(split)
@@ -203,5 +208,5 @@ def list_ID_stats(IDList, label):
     uniqueVal = len(set(IDList))
     missingVal = 1 - uniqueVal / (maxVal - minVal)
 
-    print("{} data, ID: min {}, max {}, unique {}, missig {:.2f} %".format(label, minVal, maxVal, uniqueVal,
+    print("{} data, ID: min {}, max {}, unique {}, missing {:.2f} %".format(label, minVal, maxVal, uniqueVal,
                                                                            missingVal * 100))
