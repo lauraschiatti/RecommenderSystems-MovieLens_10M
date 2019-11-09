@@ -6,37 +6,29 @@
 from urllib.request import urlretrieve
 import zipfile, os
 import matplotlib.pyplot as pyplot
-import scipy.sparse as sps
 import numpy as np
+import scipy.sparse as sps
 
-def load_and_prepare_data():
+URMFile = ""
+
+def parse_data(file):
     print("\nLoading data ... ", end="\n")
 
-    # Download data
-    dataFilePath = "data/Movielens_10M"
-    dataFileName = dataFilePath + "/movielens_10m.zip"
+    matrixPath = download_data(file)
+    matrixFile = open(matrixPath, 'r') # read file's content
 
-    # If file exists, skip the download
-    os.makedirs(dataFilePath, exist_ok=True) # create dir if not exists
-    if not os.path.exists(dataFileName):
-        urlretrieve("http://files.grouplens.org/datasets/movielens/ml-10m.zip", dataFileName) # copy network object denoted by a URL to a local file
-
-    dataFile = zipfile.ZipFile(dataFileName) # open zip file
-    URMPath = dataFile.extract("ml-10M100K/ratings.dat", path="data/Movielens_10M") # extract data
-
-    # Format data
     global URMFile
-    URMFile = open(URMPath, 'r') # read file's content
+    URMFile = matrixFile
 
     # Create a tuple for each interaction (line in the file)
-    URMFile.seek(0)  # start from beginning of the file
-    URMTuples = []
+    matrixFile.seek(0)  # start from beginning of the file
+    matrixTuples = []
 
-    for line in URMFile:
-        URMTuples.append(row_split(line))
+    for line in matrixFile:
+        matrixTuples.append(row_split(line))
 
     # Separate the four columns in different independent lists
-    userList, itemList, ratingList, timestampList = zip(*URMTuples)  # join tuples together (zip() to map values)
+    userList, itemList, ratingList, timestampList = zip(*matrixTuples)  # join tuples together (zip() to map values)
 
     # Convert values to list
     userList = list(userList)
@@ -44,40 +36,67 @@ def load_and_prepare_data():
     ratingList = list(ratingList)
     timestampList = list(timestampList)
 
-    # To store the data we use a sparse matrix.
-    # Build the matrix in COOrdinate format (fast format for constructing sparse matrices)
-    URMSparse = sps.coo_matrix((ratingList, (userList, itemList))) # (data, (row, column))
-
-    # Remark: CSR is made for fast row access, CSC for fast column access.
-    # Put the matrix in Compressed Sparse Row format for fast arithmetic and matrix vector operations
-    URMSparse.tocsr()
-
-    return userList, itemList, ratingList, timestampList, URMSparse
+    return userList, itemList, ratingList, timestampList
 
 
-def data_splitting(userList, itemList, ratingList, URMSparse, trainTestSplit):
-    numInteractions = URMSparse.nnz  # number of nonzero values
+def download_data(file):
+    dataUrl = "http://files.grouplens.org/datasets/movielens/ml-10m.zip"
+    dataFilePath = "data/Movielens_10M"
+    dataFileName = dataFilePath + "/movielens_10m.zip"
 
-    # take random samples of data.
+    # If file exists, skip the download
+    os.makedirs(dataFilePath, exist_ok=True)  # create dir if not exists
+    if not os.path.exists(dataFileName):
+        urlretrieve(dataUrl, dataFileName)  # copy network object denoted by a URL to a local file
+
+    dataFile = zipfile.ZipFile(dataFileName)  # open zip file
+    dataPath = dataFile.extract(file, path=dataFilePath)  # extract data
+
+    return dataPath
+
+
+# Split dataset into train and test sets
+def data_splitting(userList, itemList, ratingList, URM, trainTestSplit):
+    numInteractions = URM.nnz  # number of nonzero values
+
+    # Take random samples of data.
     # Use random boolean mask. p trainTestSplit for True and 1-trainTestSplit for False
-    trainMask = np.random.choice([True, False], numInteractions,p=[trainTestSplit, 1 - trainTestSplit])
-
     userList = np.array(userList)
     itemList = np.array(itemList)
     ratingList = np.array(ratingList)
 
-    URMTrain = sps.coo_matrix((ratingList[trainMask], (userList[trainMask], itemList[trainMask])))
-    URMTrain = URMTrain.tocsr()
+    trainMask = np.random.choice([True, False], numInteractions,p=[trainTestSplit, 1 - trainTestSplit])
+    URMTrain = csr_sparse_matrix(ratingList[trainMask], userList[trainMask], itemList[trainMask])
 
     testMask = np.logical_not(trainMask) # Compute the truth value of NOT x element-wise.
-
-    URMTest = sps.coo_matrix((ratingList[testMask], (userList[testMask], itemList[testMask])))
-    URMTest = URMTest.tocsr()
+    URMTest = csr_sparse_matrix(ratingList[testMask], userList[testMask], itemList[testMask])
 
     return URMTrain, URMTest
 
 
-def display_statistics(userList, itemList, URMSparse):
+# Separate user, item, rating and timestamp
+def row_split(rowString):
+    # file format: 1::364::5::838983707
+    split = rowString.split("::")
+    split[3] = split[3].replace("\n", "")
+
+    split[0] = int(split[0])
+    split[1] = int(split[1])
+    split[2] = float(split[2])
+    split[3] = int(split[3])
+
+    result = tuple(split)
+    return result
+
+# Matrix in COOrdinate format (fast format for constructing sparse matrices)
+def csr_sparse_matrix(data, row, col):
+    matrix = sps.coo_matrix((data, (row, col)))
+    matrix = matrix.tocsr() # put in Compressed Sparse Row format for fast row access
+    return matrix
+
+
+# Statistics on interactions
+def display_statistics(userList, itemList, URM):
     print("\nStatistics ... ")
 
     # Number of interactions in the URM
@@ -86,10 +105,9 @@ def display_statistics(userList, itemList, URMSparse):
 
     for _ in URMFile:
         numberInteractions += 1
-    print("The number of interactions is {} \n".format(numberInteractions))
+    print("The number of interactions is {}".format(numberInteractions))
 
-    userListUnique, itemListUnique = get_user_item_unique(userList, itemList) # to convert set into a list
-
+    userListUnique, itemListUnique = remove_duplicates(userList, itemList)
     numUsers = len(userListUnique)
     numItems = len(itemListUnique)
 
@@ -101,10 +119,10 @@ def display_statistics(userList, itemList, URMSparse):
     print("Sparsity {:.2f} %\n".format((1 - float(numberInteractions) / (numItems * numUsers)) * 100))
 
     # Item popularity
-    print("Item popularity\n")
-    itemPopularity = item_popularity(URMSparse)
+    print("Item popularity ... \n")
+    itemPopularity = flatten_array(URM)
 
-    plot_data(itemPopularity, 'ro', 'Num Interactions', 'Item Index')
+    plot_data(itemPopularity, 'ro', 'Item Popularity', 'Num Interactions', 'Item Index')
 
     tenPercent = int(numItems / 10)
 
@@ -139,60 +157,51 @@ def display_statistics(userList, itemList, URMSparse):
     print("Average per-item interactions for the median 10% popular items {:.2f}".
           format(itemPopularityNonzero[int(numItems * 0.45):int(numItems * 0.55)].mean()))
 
-    plot_data(itemPopularityNonzero, 'ro', 'Num Interactions', 'Item Index')
+    plot_data(itemPopularityNonzero, 'ro', 'Item Popularity Nonzero' , 'Num Interactions', 'Item Index')
 
     # User Activity
-    print("User activity\n")
-    userActivity = (URMSparse > 0).sum(axis=1)
-    userActivity = np.array(userActivity).squeeze()
-    userActivity = np.sort(userActivity)
-
-    plot_data(userActivity, 'ro', 'Num Interactions', 'User Index')
+    print("User activity ...\n")
+    userActivity = flatten_array(URM)
+    plot_data(userActivity, 'ro', 'User Activity', 'Num Interactions', 'User Index')
 
 
 def rating_distribution_over_time(timestampList):
-    print("\nRating distribution over time ... ", end="\n")
+    print("Rating distribution over time ... ", end="\n")
     # Clone the list to avoid changing the ordering of the original data
     timestampSorted = list(timestampList)
     timestampSorted.sort()
 
-    plot_data(timestampSorted, 'ro', 'Timestamp', 'Item Index')
+    plot_data(timestampSorted, 'ro', 'Timestamp Sorted', 'Timestamp', 'Item Index')
 
 
-def row_split(rowString):
-    # Separate user, item, rating and timestamp
-    # file format: 1::364::5::838983707
-    split = rowString.split("::")
-    split[3] = split[3].replace("\n", "")
-
-    split[0] = int(split[0])
-    split[1] = int(split[1])
-    split[2] = float(split[2])
-    split[3] = int(split[3])
-
-    result = tuple(split)
-    return result
-
-
-def get_user_item_unique(userList, itemList):
-    userListUnique = list(set(userList))  # to convert set into a list
-    itemListUnique = list(set(itemList))
-    
-    return userListUnique, itemListUnique
-
-
-def plot_data(data, marker, yLabel, xLabel):
+def plot_data(data, marker, title, yLabel, xLabel):
     pyplot.plot(data, marker)
-    pyplot.xlabel(xLabel)
+    pyplot.title(title)
     pyplot.ylabel(yLabel)
+    pyplot.xlabel(xLabel)
     pyplot.show()
 
 
-def item_popularity(URMSparse):
-    print("\n Item popularity ... ")
-    itemPopularity = (URMSparse > 0).sum(axis=0)
-    itemPopularity = np.array(itemPopularity).squeeze()
-    itemPopularity = np.sort(itemPopularity)
+# Remove duplicates from list by using a set
+def remove_duplicates(userList, itemList):
+    userListUnique = list(set(userList))
+    itemListUnique = list(set(itemList))
 
-    return itemPopularity
+    return userListUnique, itemListUnique
 
+# Flatten single dimensional entries in an array
+def flatten_array(array):
+    flattenedArray = (array > 0).sum(axis=0)
+    flattenedArray = np.array(flattenedArray).squeeze()
+    flattenedArray = np.sort(flattenedArray)
+
+    return flattenedArray
+
+def list_ID_stats(IDList, label):
+    minVal = min(IDList)
+    maxVal = max(IDList)
+    uniqueVal = len(set(IDList))
+    missingVal = 1 - uniqueVal / (maxVal - minVal)
+
+    print("{} data, ID: min {}, max {}, unique {}, missig {:.2f} %".format(label, minVal, maxVal, uniqueVal,
+                                                                           missingVal * 100))

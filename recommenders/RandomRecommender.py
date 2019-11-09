@@ -4,10 +4,10 @@ import numpy as np
 # Doesn't have anything to learn from the data
 class RandomRecommender(object):
 
-    def fit(self, URM_train):
-        self.numItems = URM_train.shape[0]
+    def fit(self, URMTrain):
+        self.numItems = URMTrain.shape[0]
 
-    def recommend(self, user_id, at=5):
+    def recommend(self, at=5):
         recommendedItems = np.random.choice(self.numItems, at)
 
         return recommendedItems

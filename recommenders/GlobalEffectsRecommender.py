@@ -20,7 +20,7 @@ class GlobalEffectsRecommender(object):
         userMeanRating = URMTrainUnbiased.mean(axis=1)
         userMeanRating = np.array(userMeanRating).squeeze()
         # userMeanRating = np.sort(userMeanRating[userMeanRating != 0.0])
-        # data.plot_data(userMeanRating, 'ro', 'User Bias', 'User Index')
+        # data.plot_data(userMeanRating, 'ro', 'User Mean Rating', 'User Bias', 'User Index')
 
 
         # In order to apply the user bias we have to change the rating value
@@ -39,7 +39,7 @@ class GlobalEffectsRecommender(object):
         itemMeanRating = URMTrainUnbiased.mean(axis=0)
         itemMeanRating = np.array(itemMeanRating).squeeze()
         # itemMeanRating = np.sort(itemMeanRating[itemMeanRating != 0])
-        # data.plot_data(itemMeanRating, 'ro', 'Item Bias', 'Item Index')
+        # data.plot_data(itemMeanRating, 'ro', 'Item Mean Rating', 'Item Bias', 'Item Index')
 
         self.bestRatedItems = np.argsort(itemMeanRating)
         self.bestRatedItems = np.flip(self.bestRatedItems, axis=0)

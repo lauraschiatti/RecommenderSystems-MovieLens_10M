@@ -3,24 +3,22 @@
 
 ## Non-personalized Recommenders Systems ##
 
-from utilities import data_preprocessing as data, evaluation_metrics as eval
-import RandomRecommender as rr
-import TopPopRecommender as tp
-import GlobalEffectsRecommender as ge
+import scipy.sparse as sps
 
-# Load and prepare ata: movielens 10 million dataset
-userList, itemList, ratingList, timestampList, URMSparse = data.load_and_prepare_data()
+from utilities import data_preprocessing as data, evaluation_metrics as eval
+from recommenders import RandomRecommender as rr, GlobalEffectsRecommender as ge, TopPopRecommender as tp
+
+# Build URM
+userList, itemList, ratingList, timestampList = data.parse_data("ml-10M100K/ratings.dat")
+URM = data.csr_sparse_matrix(ratingList, userList, itemList)
 
 # Statistics on interactions
-# data.display_statistics(userList, itemList, URMSparse)
-# data.rating_distribution_over_time(timestampList)
+data.display_statistics(userList, itemList, URM)
+data.rating_distribution_over_time(timestampList)
 
-# Split dataset into train and test sets
 TRAIN_TEST = 0.80
-URMTrain, URMTest = data.data_splitting(userList, itemList, ratingList, URMSparse, TRAIN_TEST)
-
-# Get users ids
-userListUnique, itemListUnique = data.get_user_item_unique(userList, itemList)
+URMTrain, URMTest = data.data_splitting(userList, itemList, ratingList, URM, TRAIN_TEST)
+userListUnique, itemListUnique = data.remove_duplicates(userList, itemList)
 
 
 # ------------------------------------------------------------------ #
@@ -33,11 +31,11 @@ randomRecommender = rr.RandomRecommender()
 randomRecommender.fit(URMTrain)
 
 # Recommendations for a user
-userId = userListUnique[1]
-recommendedItems = randomRecommender.recommend(userId, at=5)
-
+recommendedItems = randomRecommender.recommend(at=5)
 
 print("Recommended items", recommendedItems, end='\n')
+
+userId = userListUnique[1]
 relevantItems = eval.get_relevant_items(userId, URMTest) # relevant items for a given user
 print("Relevant items", relevantItems)
 isRelevant = eval.is_relevant(recommendedItems, relevantItems)
@@ -89,8 +87,7 @@ print("Deleted {} negative interactions".format(URMTest.nnz - URMTestPositiveOnl
 print("evaluation of TopPopRecommender with URMTestPositiveOnly: ")
 eval.evaluate_algorithm(URMTestPositiveOnly, topPopRecommender, userListUnique)
 
-print("evaluation of globalEffectsRecommender with URMTestPositiveOnly: ")
-# Sometimes ratings are not really more informative than interactions, depends on their quality
+print("evaluation of globalEffectsRecommender with URMTestPositiveOnly: ")# Sometimes ratings are not really more informative than interactions, depends on their quality
 eval.evaluate_algorithm(URMTestPositiveOnly, globalEffectsRecommender, userListUnique)
 
 # but GlobalEffects performs worse again... why?
