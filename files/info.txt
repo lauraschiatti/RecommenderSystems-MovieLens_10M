@@ -14,6 +14,10 @@ Two things needed:
 
 
 ## User Relevant vs. Recommended items
+An item is considered relevant if its true rating 𝑟𝑢𝑖 is greater than a given threshold.
+An item is considered recommended if its estimated rating 𝑟̂ 𝑢𝑖 is greater than the threshold,
+and if it is among the k highest estimated ratings.
+
 # Relevant items are already known in the data set
 Relevant item: Has a True/Actual rating >= 3.5
 Irrelevant item: Has a True/Actual rating < 3.5
@@ -23,4 +27,19 @@ Recommended item: has a predicted rating >= 3.5
 Not recommended item: Has a predicted rating < 3.5
 
 Precision at k is the proportion of recommended items in the top-k set that are relevant
-Precision@k = (# of recommended items @k that are relevant) / (# of recommended items @k)
+Precision@k = (# of recommended
+items @k that are relevant) / (# of recommended items @k)
+
+
+
+
+## Why is GlobalEffect performing worse than TopPop even
+    if we are taking into account more information about the interaction?
+
+The test data contains a lot of low rating interactions...
+We are testing against those as well, but GlobalEffects is penalizing interactions with low rating
+
+URMTest.data[URMTest.data<=2]
+
+
+Return the top-N recommendation for each user from a set of predictions

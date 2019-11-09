@@ -9,7 +9,6 @@ import matplotlib.pyplot as pyplot
 import scipy.sparse as sps
 import numpy as np
 
-
 def load_and_prepare_data():
     print("\nLoading data ... ", end="\n")
 
@@ -49,6 +48,7 @@ def load_and_prepare_data():
     # Build the matrix in COOrdinate format (fast format for constructing sparse matrices)
     URMSparse = sps.coo_matrix((ratingList, (userList, itemList))) # (data, (row, column))
 
+    # Remark: CSR is made for fast row access, CSC for fast column access.
     # Put the matrix in Compressed Sparse Row format for fast arithmetic and matrix vector operations
     URMSparse.tocsr()
 
@@ -101,6 +101,7 @@ def display_statistics(userList, itemList, URMSparse):
     print("Sparsity {:.2f} %\n".format((1 - float(numberInteractions) / (numItems * numUsers)) * 100))
 
     # Item popularity
+    print("Item popularity\n")
     itemPopularity = item_popularity(URMSparse)
 
     plot_data(itemPopularity, 'ro', 'Num Interactions', 'Item Index')
@@ -141,6 +142,7 @@ def display_statistics(userList, itemList, URMSparse):
     plot_data(itemPopularityNonzero, 'ro', 'Num Interactions', 'Item Index')
 
     # User Activity
+    print("User activity\n")
     userActivity = (URMSparse > 0).sum(axis=1)
     userActivity = np.array(userActivity).squeeze()
     userActivity = np.sort(userActivity)

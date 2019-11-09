@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-# recommends to all users the most popular items, that is those with the highest number of interactions (ratings)
+# Recommends to all users the most popular items, those with the highest number of interactions (ratings)
 class TopPopRecommender(object):
-
     # model is the item popularity
     def fit(self, URMTrain):
         self.URMTrain = URMTrain
@@ -17,10 +16,10 @@ class TopPopRecommender(object):
         self.popularItems = np.flip(self.popularItems, axis=0)
 
     def recommend(self, userId, at=5, removeSeen=True):
-
         # Simple but effective. Always remove seen items if your purpose is to recommend "new" ones
         if removeSeen:
-            unseenItemsMask = np.in1d(self.popularItems, self.URMTrain[userId].indices, assume_unique=True, invert=True)
+            unseenItemsMask = np.in1d(self.popularItems, self.URMTrain[userId].indices,
+                                      assume_unique=True, invert=True)
 
             unseenItems = self.popularItems[unseenItemsMask]
             recommendedItems = unseenItems[0:at]
