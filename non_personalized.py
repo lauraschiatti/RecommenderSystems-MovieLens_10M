@@ -2,7 +2,7 @@
 #  -*- coding: utf-8 -*-
 
 from utils import data_preprocessing as data, evaluation as eval
-from recommenders import RandomRecommender as rr, GlobalEffectsRecommender as ge, TopPopRecommender as tp
+from recommenders import random_recommender as rr, global_effects_recommender as ge, top_popular_recommender as tp
 
 # Build URM
 user_list, item_list, rating_list, timestamp_list = data.parse_data("ml-10M100K/ratings.dat", True)
@@ -13,13 +13,12 @@ user_list, item_list, rating_list, timestamp_list = data.parse_data("ml-10M100K/
 URM = data.csr_sparse_matrix(rating_list, user_list, item_list)
 
 # Statistics on interactions
-data.display_statistics(user_list, item_list, URM)
-data.rating_distribution_over_time(timestamp_list)
+# data.display_statistics(user_list, item_list, URM)
+# data.rating_distribution_over_time(timestamp_list)
 
 # Train/test split
 URM_train, URM_test = data.train_test_holdout(URM, train_perc = 0.8)
-user_list_unique, item_list_unique = data.remove_duplicates(user_list, item_list)
-
+user_list_unique = data.remove_duplicates(user_list)
 
 # ------------------------------------------------------------------ #
                 ##### Random Recommender #####
@@ -48,17 +47,27 @@ eval.evaluate_algorithm(URM_test, randomRecommender)
                 ##### Top Popular Recommender #####
 # ------------------------------------------------------------------ #
 
-# Train model
+# Train
 print("\nTop popular recommender ... ", end="\n")
 topPopRecommender = tp.TopPopRecommender()
 topPopRecommender.fit(URM_train)
 
 # Make k recommendations to 10 users
 for id in user_list_unique[0:10]:
-    print(topPopRecommender.recommend(id, at=5))  # at = # items to recommended
+    print(topPopRecommender.recommend(id, at=5, remove_seen=False))  # at = # items to recommended
 
 # Test model
 eval.evaluate_algorithm(URM_test, topPopRecommender)
+
+# Train removing seen items
+print("\nTop popular recommender removing seen items... ", end="\n")
+topPopRecommender_remove_seen = tp.TopPopRecommender()
+topPopRecommender_remove_seen.fit(URM_train)
+
+for user_id in user_list_unique[0:10]:
+    print(topPopRecommender_remove_seen.recommend(user_id, at=5))
+
+eval.evaluate_algorithm(URM_test, topPopRecommender_remove_seen)
 
 
 # ------------------------------------------------------------------ #
