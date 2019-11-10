@@ -37,7 +37,6 @@ def parse_data(file, is_URM):
 
     return user_list, item_list, content_list, timestamp_list
 
-
 def download_data(file):
     data_url = "http://files.grouplens.org/datasets/movielens/ml-10m.zip"
     data_file_path = "data/Movielens_10M"
@@ -52,7 +51,6 @@ def download_data(file):
     data_path = data_file.extract(file, path=data_file_path)  # extract data
 
     return data_path
-
 
 # Train/test split
 def train_test_holdout(URM, train_perc=0.8):
@@ -99,7 +97,6 @@ def csr_sparse_matrix(data, row, col, shape=None):
 
     return matrix
 
-
 # Statistics on interactions
 def display_statistics(user_list, item_list, URM):
     print("\nStatistics ... ")
@@ -112,7 +109,9 @@ def display_statistics(user_list, item_list, URM):
         number_interactions += 1
     print("The number of interactions is {}".format(number_interactions))
 
-    user_list_unique, item_list_unique = remove_duplicates(user_list, item_list)
+    user_list_unique = remove_duplicates(user_list)
+    item_list_unique = remove_duplicates(item_list)
+
     num_users = len(user_list_unique)
     num_items = len(item_list_unique)
 
@@ -169,7 +168,6 @@ def display_statistics(user_list, item_list, URM):
     user_activity = flatten_array(URM)
     plot_data(user_activity, 'ro', 'User Activity', 'Num Interactions', 'User Index')
 
-
 def rating_distribution_over_time(timestamp_list):
     print("Rating distribution over time ... ", end="\n")
     # Clone the list to avoid changing the ordering of the original data
@@ -178,7 +176,6 @@ def rating_distribution_over_time(timestamp_list):
 
     plot_data(timestamp_sorted, 'ro', 'Timestamp Sorted', 'Timestamp', 'Item Index')
 
-
 def plot_data(data, marker, title, y_label, x_label):
     pyplot.plot(data, marker)
     pyplot.title(title)
@@ -186,13 +183,11 @@ def plot_data(data, marker, title, y_label, x_label):
     pyplot.xlabel(x_label)
     pyplot.show()
 
-
 # Remove duplicates from list by using a set
-def remove_duplicates(user_list, item_list):
-    user_list_unique = list(set(user_list))
-    item_list_unique = list(set(item_list))
+def remove_duplicates(list_o):
+    list_unique = list(set(list_o))
 
-    return user_list_unique, item_list_unique
+    return list_unique
 
 # Flatten single dimensional entries in an array
 def flatten_array(array):
@@ -208,5 +203,39 @@ def list_ID_stats(IDList, label):
     unique_val = len(set(IDList))
     missing_val = 1 - unique_val / (max_val - min_val)
 
-    print("{} data, ID: min {}, max {}, unique {}, missing {:.2f} %".format(label, min_val, max_val, unique_val,
-                                                                           missing_val * 100))
+    print("{} data, ID: min {}, max {}, unique {}, missing {:.2f} %".format(label, min_val, max_val, unique_val, missing_val))
+
+# Transforms matrix into a specific format
+def check_matrix(X, format='csc', dtype=np.float32):
+    """
+        This function takes a matrix as input and transforms it into the specified format.
+        The matrix in input can be either sparse or ndarray.
+        If the matrix in input has already the desired format, it is returned as-is
+        the dtype parameter is always applied and the default is np.float32
+        :param X:
+        :param format:
+        :param dtype:
+        :return:
+    """
+
+    if format == 'csc' and not isinstance(X, sps.csc_matrix):
+        return X.tocsc().astype(dtype)
+    elif format == 'csr' and not isinstance(X, sps.csr_matrix):
+        return X.tocsr().astype(dtype)
+    elif format == 'coo' and not isinstance(X, sps.coo_matrix):
+        return X.tocoo().astype(dtype)
+    elif format == 'dok' and not isinstance(X, sps.dok_matrix):
+        return X.todok().astype(dtype)
+    elif format == 'bsr' and not isinstance(X, sps.bsr_matrix):
+        return X.tobsr().astype(dtype)
+    elif format == 'dia' and not isinstance(X, sps.dia_matrix):
+        return X.todia().astype(dtype)
+    elif format == 'lil' and not isinstance(X, sps.lil_matrix):
+        return X.tolil().astype(dtype)
+    elif isinstance(X, np.ndarray):
+        X = sps.csr_matrix(X, dtype=dtype)
+        X.eliminate_zeros()
+        return check_matrix(X, format=format, dtype=dtype)
+    else:
+        return X.astype(dtype)
+

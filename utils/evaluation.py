@@ -12,13 +12,11 @@ def get_relevant_items(user_id, URM_test):
 
     return relevant_items
 
-
 # Check whether recommended items are relevant
 def get_is_relevant(recommended_items, relevant_items):
     is_relevant = np.in1d(recommended_items, relevant_items, assume_unique=True) # compare elements in both arrays
 
     return is_relevant
-
 
 # Precision: how many of the recommended items are relevant?
 def precision(is_relevant):
@@ -26,13 +24,11 @@ def precision(is_relevant):
 
     return precision_score
 
-
 # Recall: how many of the relevant items I was able to recommend?
 def recall(is_relevant, relevant_items):
     recall_score = np.sum(is_relevant, dtype=np.float32) / relevant_items.shape[0]
 
     return recall_score
-
 
 # Mean Average Precision
 def MAP(is_relevant, relevant_items):
@@ -41,7 +37,6 @@ def MAP(is_relevant, relevant_items):
     map_score = np.sum(p_at_k) / np.min([relevant_items.shape[0], is_relevant.shape[0]])
 
     return map_score
-
 
 def evaluate_algorithm(URM_test, recommender_object, at=5):
     cumulative_precision = 0.0
@@ -89,6 +84,3 @@ def evaluate_algorithm(URM_test, recommender_object, at=5):
     }
 
     return result_dict
-
-
-

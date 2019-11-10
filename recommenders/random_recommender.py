@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
 
@@ -7,7 +8,7 @@ class RandomRecommender(object):
     def fit(self, URMTrain):
         self.numItems = URMTrain.shape[0]
 
-    def recommend(self, at=5):
+    def recommend(self, userId, at=5):
         recommendedItems = np.random.choice(self.numItems, at)
 
         return recommendedItems

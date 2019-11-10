@@ -6,6 +6,7 @@ import numpy as np
 import scipy.sparse as sps
 
 from utils import data_preprocessing as data, evaluation as eval
+from recommenders import item_CBF_KNN_recommender as CBF
 
 # Load ratings data
 user_list, item_list, rating_list, timestamp_list = data.parse_data("ml-10M100K/ratings.dat", is_URM=True)
@@ -52,20 +53,18 @@ ICM = sps.csr_matrix(ICM)
 features_per_item = np.ediff1d(ICM.indptr)
 print("Features Per Item", features_per_item.shape)
 features_per_item = np.sort(features_per_item)
-data.plot_data(features_per_item, 'ro', 'Features Per Item', 'Num Features', 'Item Index')
+# data.plot_data(features_per_item, 'ro', 'Features Per Item', 'Num Features', 'Item Index')
 
 # Items per feature
 ICM = sps.csc_matrix(ICM)
 items_per_feature = np.ediff1d(ICM.indptr)
 print("Items Per Feature", items_per_feature.shape)
 items_per_feature = np.sort(items_per_feature)
-data.plot_data(items_per_feature, 'ro', 'Items Per Feature', 'Num Items', 'Feature Index')
+# data.plot_data(items_per_feature, 'ro', 'Items Per Feature', 'Num Items', 'Feature Index')
 
 ICM = sps.csr_matrix(ICM)
 
 URM_train, URM_test = data.train_test_holdout(URM, train_perc = 0.8)
-
-
 
 
 # ------------------------------------------------------------------ #
@@ -73,5 +72,12 @@ URM_train, URM_test = data.train_test_holdout(URM, train_perc = 0.8)
 # ------------------------------------------------------------------ #
 
 # Train model
+print("\nItem-CBFKNN recommender ... ", end="\n")
+ICBFKNNrecommender = CBF.ItemCBFKNNRecommender(URM_train, ICM)
+ICBFKNNrecommender.fit(shrink=0.0, topK=50)
+
+user_list_unique = data.remove_duplicates(user_list_ICM)
+for user_id in user_list_unique[0:10]:
+    print(ICBFKNNrecommender.recommend(user_id, at=5))
 
 # Test model
