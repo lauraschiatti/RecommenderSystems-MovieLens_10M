@@ -33,7 +33,7 @@ items @k that are relevant) / (# of recommended items @k)
 
 
 
-## Why is GlobalEffect performing worse than TopPop even
+### Why is GlobalEffect performing worse than TopPop even
     if we are taking into account more information about the interaction?
 
 The test data contains a lot of low rating interactions...
@@ -43,3 +43,18 @@ URMTest.data[URMTest.data<=2]
 
 
 Return the top-N recommendation for each user from a set of predictions
+
+
+### Parameter tuning
+Once we have built our model we can play with its parameters. According to the dataset, they can affect
+ performance in different ways
+- Number of neighbors
+- Shrinkage
+- Similarity type
+
+- Remark: Be careful, overfitting!
+While a thorough parameter tuning might result in significantly higher MAP on your validation split,
+it could have only marginally better or even worse MAP on the test set
+
+# Feature weighting: TF
+- IDF or BM25

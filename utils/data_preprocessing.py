@@ -10,7 +10,7 @@ import numpy as np
 import scipy.sparse as sps
 
 def parse_data(file, is_URM):
-    print("\nLoading data ... ", end="\n")
+    print("Loading data ... ", end="\n")
 
     matrix_path = download_data(file)
     matrix_file = open(matrix_path, 'r') # read file's content
@@ -38,17 +38,18 @@ def parse_data(file, is_URM):
     return user_list, item_list, content_list, timestamp_list
 
 def download_data(file):
-    data_url = "http://files.grouplens.org/datasets/movielens/ml-10m.zip"
-    data_file_path = "data/Movielens_10M"
-    data_file_name = data_file_path + "/movielens_10m.zip"
+    DATASET_URL = "http://files.grouplens.org/datasets/movielens/ml-10m.zip"
+    DATASET_SUBFOLDER = "data/Movielens_10M"
+    DATASET_FILE_NAME = DATASET_SUBFOLDER + "/movielens_10m.zip"
 
     # If file exists, skip the download
-    os.makedirs(data_file_path, exist_ok=True)  # create dir if not exists
-    if not os.path.exists(data_file_name):
-        urlretrieve(data_url, data_file_name)  # copy network object denoted by a URL to a local file
+    os.makedirs(DATASET_SUBFOLDER, exist_ok=True)  # create dir if not exists
+    if not os.path.exists(DATASET_FILE_NAME):
+        urlretrieve(DATASET_URL, DATASET_FILE_NAME)  # copy network object denoted by a URL to a local file
+        print("Downloading: {}".format(DATASET_URL))
 
-    data_file = zipfile.ZipFile(data_file_name)  # open zip file
-    data_path = data_file.extract(file, path=data_file_path)  # extract data
+    data_file = zipfile.ZipFile(DATASET_FILE_NAME)  # open zip file
+    data_path = data_file.extract(file, path=DATASET_SUBFOLDER)  # extract data
 
     return data_path
 
@@ -219,9 +220,9 @@ def check_matrix(X, format='csc', dtype=np.float32):
     """
 
     if format == 'csc' and not isinstance(X, sps.csc_matrix):
-        return X.tocsc().astype(dtype)
+        return X.tocsc().astype(dtype) # Compressed Sparse Column format
     elif format == 'csr' and not isinstance(X, sps.csr_matrix):
-        return X.tocsr().astype(dtype)
+        return X.tocsr().astype(dtype) # Compressed Sparse Row format
     elif format == 'coo' and not isinstance(X, sps.coo_matrix):
         return X.tocoo().astype(dtype)
     elif format == 'dok' and not isinstance(X, sps.dok_matrix):

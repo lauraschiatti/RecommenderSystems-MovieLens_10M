@@ -5,6 +5,7 @@
 
 import numpy as np
 import scipy.sparse as sps
+import time, traceback
 
 # Get test set relevant items for a given user
 def get_relevant_items(user_id, URM_test):
@@ -84,3 +85,19 @@ def evaluate_algorithm(URM_test, recommender_object, at=5):
     }
 
     return result_dict
+
+# Time to compute recommendations for a fixed group of users
+def response_time(n_users_to_test, recommender):
+    try:
+        start_time = time.time()
+
+        for user_id in range(n_users_to_test):
+            recommender.recommend(user_id, at=5)
+
+        end_time = time.time()
+
+        print("Reasonable implementation speed is {:.2f} usr/sec".format(n_users_to_test / (end_time - start_time)))
+
+    except Exception as e:
+        print("Exception {}".format(str(e)))
+        traceback.print_exc()
