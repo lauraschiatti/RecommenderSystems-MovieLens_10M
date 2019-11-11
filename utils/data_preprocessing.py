@@ -10,6 +10,7 @@ import numpy as np
 import scipy.sparse as sps
 from sklearn import preprocessing
 
+################################ LOADING DATA ...  ################################
 
 def parse_data(file, is_URM):
     print("Loading data ... ", end="\n")
@@ -55,23 +56,7 @@ def download_data(file):
 
     return data_path
 
-# Train/test split
-def train_test_holdout(URM, train_perc=0.8):
-    num_interactions = URM.nnz  # number of nonzero values
-
-    URM = URM.tocoo()
-    shape = URM.shape
-
-    # URM.data: ratingList, URM.row: user_list, URM.col: item_list
-
-    # Take random samples of data. Use random boolean mask
-    train_mask = np.random.choice([True, False], num_interactions, p=[train_perc, 1 - train_perc]) # p train_perc for True and 1-train_perc for Fase
-    URM_train = csr_sparse_matrix(URM.data[train_mask], URM.row[train_mask], URM.col[train_mask], shape=shape)
-
-    test_mask = np.logical_not(train_mask) # Compute the truth value of NOT x element-wise.
-    URM_test = csr_sparse_matrix(URM.data[test_mask], URM.row[test_mask], URM.col[test_mask], shape=shape)
-
-    return URM_train, URM_test
+################################ PARSING DATA ...  ################################
 
 # Separate user, item, rating (or tag) and timestamp
 def row_split(row_string, is_URM):
@@ -100,7 +85,72 @@ def csr_sparse_matrix(data, row, col, shape=None):
 
     return matrix
 
-# Statistics on interactions
+# Remove duplicates from list by using a set
+def remove_duplicates(list_o):
+    list_unique = list(set(list_o))
+
+    return list_unique
+
+# Flatten single dimensional entries in an array
+def flatten_array(array):
+    flattened_array = (array > 0).sum(axis=0)
+    flattened_array = np.array(flattened_array).squeeze()
+    flattened_array = np.sort(flattened_array)
+
+    return flattened_array
+
+# Transforms matrix into a specific format
+def check_matrix(X, format='csc', dtype=np.float32):
+    """
+        This function takes a matrix as input and transforms it into the specified format.
+        The matrix in input can be either sparse or ndarray.
+        If the matrix in input has already the desired format, it is returned as-is
+        the dtype parameter is always applied and the default is np.float32
+        :param X:
+        :param format:
+        :param dtype:
+        :return:
+    """
+
+    if format == 'csc' and not isinstance(X, sps.csc_matrix):
+        return X.tocsc().astype(dtype) # Compressed Sparse Column format
+    elif format == 'csr' and not isinstance(X, sps.csr_matrix):
+        return X.tocsr().astype(dtype) # Compressed Sparse Row format
+    elif format == 'coo' and not isinstance(X, sps.coo_matrix):
+        return X.tocoo().astype(dtype)
+    elif format == 'dok' and not isinstance(X, sps.dok_matrix):
+        return X.todok().astype(dtype)
+    elif format == 'bsr' and not isinstance(X, sps.bsr_matrix):
+        return X.tobsr().astype(dtype)
+    elif format == 'dia' and not isinstance(X, sps.dia_matrix):
+        return X.todia().astype(dtype)
+    elif format == 'lil' and not isinstance(X, sps.lil_matrix):
+        return X.tolil().astype(dtype)
+    elif isinstance(X, np.ndarray):
+        X = sps.csr_matrix(X, dtype=dtype)
+        X.eliminate_zeros()
+        return check_matrix(X, format=format, dtype=dtype)
+    else:
+        return X.astype(dtype)
+
+# Encode labels with value between 0 and n_classes-1.
+def label_encoder(list):
+    le = preprocessing.LabelEncoder()
+    le.fit(list)
+    encoded_list = le.transform(list)
+    # print("encoded encoded_list", encoded_list[0:10])
+
+    return encoded_list
+
+################################ STATISTICS ...  ################################
+
+def plot_data(data, marker, title, y_label, x_label):
+    pyplot.plot(data, marker)
+    pyplot.title(title)
+    pyplot.ylabel(y_label)
+    pyplot.xlabel(x_label)
+    pyplot.show()
+
 def interactions_statistics(user_list, item_list, URM):
     print("\nStatistics ... ")
 
@@ -179,26 +229,20 @@ def rating_distribution_over_time(timestamp_list):
 
     plot_data(timestamp_sorted, 'ro', 'Timestamp Sorted', 'Timestamp', 'Item Index')
 
-def plot_data(data, marker, title, y_label, x_label):
-    pyplot.plot(data, marker)
-    pyplot.title(title)
-    pyplot.ylabel(y_label)
-    pyplot.xlabel(x_label)
-    pyplot.show()
+# Show how the recommendations are distributed among items
+def recommendations_distribution(URM, recommender):
+        x_tick = np.arange(URM.shape[1])
+        counter = np.zeros(URM.shape[1])
+        for user_id in range(URM.shape[0]):
+            recs = recommender.recommend(user_id, at=5)
+            counter[recs] += 1
+            if user_id % 10000 == 0:
+                print("Recommended to user {}/{}".format(user_id, URM.shape[0]))
 
-# Remove duplicates from list by using a set
-def remove_duplicates(list_o):
-    list_unique = list(set(list_o))
-
-    return list_unique
-
-# Flatten single dimensional entries in an array
-def flatten_array(array):
-    flattened_array = (array > 0).sum(axis=0)
-    flattened_array = np.array(flattened_array).squeeze()
-    flattened_array = np.sort(flattened_array)
-
-    return flattened_array
+        pyplot.plot(x_tick, np.sort(counter)[::-1])
+        pyplot.ylabel('Number of recommendations')
+        pyplot.xlabel('Items')
+        pyplot.show()
 
 def list_ID_stats(ID_list, label):
     min_val = min(ID_list)
@@ -208,41 +252,6 @@ def list_ID_stats(ID_list, label):
 
     print("{} data, ID: min {}, max {}, unique {}, missig {:.2f} %".format(label, min_val, max_val, unique_val,
                                                                            missing_val * 100))
-
-# Transforms matrix into a specific format
-def check_matrix(X, format='csc', dtype=np.float32):
-    """
-        This function takes a matrix as input and transforms it into the specified format.
-        The matrix in input can be either sparse or ndarray.
-        If the matrix in input has already the desired format, it is returned as-is
-        the dtype parameter is always applied and the default is np.float32
-        :param X:
-        :param format:
-        :param dtype:
-        :return:
-    """
-
-    if format == 'csc' and not isinstance(X, sps.csc_matrix):
-        return X.tocsc().astype(dtype) # Compressed Sparse Column format
-    elif format == 'csr' and not isinstance(X, sps.csr_matrix):
-        return X.tocsr().astype(dtype) # Compressed Sparse Row format
-    elif format == 'coo' and not isinstance(X, sps.coo_matrix):
-        return X.tocoo().astype(dtype)
-    elif format == 'dok' and not isinstance(X, sps.dok_matrix):
-        return X.todok().astype(dtype)
-    elif format == 'bsr' and not isinstance(X, sps.bsr_matrix):
-        return X.tobsr().astype(dtype)
-    elif format == 'dia' and not isinstance(X, sps.dia_matrix):
-        return X.todia().astype(dtype)
-    elif format == 'lil' and not isinstance(X, sps.lil_matrix):
-        return X.tolil().astype(dtype)
-    elif isinstance(X, np.ndarray):
-        X = sps.csr_matrix(X, dtype=dtype)
-        X.eliminate_zeros()
-        return check_matrix(X, format=format, dtype=dtype)
-    else:
-        return X.astype(dtype)
-
 
 def item_feature_ratios(ICM):
     # Features per item
@@ -259,14 +268,20 @@ def item_feature_ratios(ICM):
     items_per_feature = np.sort(items_per_feature)
     # data.plot_data(items_per_feature, 'ro', 'Items Per Feature', 'Num Items', 'Feature Index')
 
+# Train/test split
+def train_test_holdout(URM, train_perc=0.8):
+    num_interactions = URM.nnz  # number of nonzero values
 
-def label_encoder(list):
-    le = preprocessing.LabelEncoder()  # encodes labels with value between 0 and n_classes-1.
-    le.fit(list)
-    encoded_list = le.transform(list)
-    # print("encoded encoded_list", encoded_list[0:10])
+    URM = URM.tocoo()
+    shape = URM.shape
 
-    return encoded_list
+    # URM.data: ratingList, URM.row: user_list, URM.col: item_list
 
+    # Take random samples of data. Use random boolean mask
+    train_mask = np.random.choice([True, False], num_interactions, p=[train_perc, 1 - train_perc]) # p train_perc for True and 1-train_perc for Fase
+    URM_train = csr_sparse_matrix(URM.data[train_mask], URM.row[train_mask], URM.col[train_mask], shape=shape)
 
-# def warm_masks():
+    test_mask = np.logical_not(train_mask) # Compute the truth value of NOT x element-wise.
+    URM_test = csr_sparse_matrix(URM.data[test_mask], URM.row[test_mask], URM.col[test_mask], shape=shape)
+
+    return URM_train, URM_test
