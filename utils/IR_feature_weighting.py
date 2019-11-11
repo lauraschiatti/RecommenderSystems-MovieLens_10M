@@ -42,8 +42,6 @@ def okapi_BM_25(dataMatrix, K1=1.2, B=0.75):
     return dataMatrix.tocsr()
 
 
-
-
 def TF_IDF(dataMatrix):
     """
     Items are assumed to be on rows

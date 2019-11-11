@@ -12,7 +12,6 @@ Two things needed:
 ## The splitting of the data is very important to ensure your algorithm is evaluated in a
     realistic scenario by using test it has never seen.
 
-
 ## User Relevant vs. Recommended items
 An item is considered relevant if its true rating 𝑟𝑢𝑖 is greater than a given threshold.
 An item is considered recommended if its estimated rating 𝑟̂ 𝑢𝑖 is greater than the threshold,
@@ -38,19 +37,19 @@ items @k that are relevant) / (# of recommended items @k)
 
 The test data contains a lot of low rating interactions...
 We are testing against those as well, but GlobalEffects is penalizing interactions with low rating
-
 URMTest.data[URMTest.data<=2]
 
 
 Return the top-N recommendation for each user from a set of predictions
 
 
-### Parameter tuning
+### Parameters tuning
 Once we have built our model we can play with its parameters. According to the dataset, they can affect
  performance in different ways
 - Number of neighbors
 - Shrinkage
 - Similarity type
+
 
 - Remark: Be careful, overfitting!
 While a thorough parameter tuning might result in significantly higher MAP on your validation split,

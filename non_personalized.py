@@ -57,7 +57,7 @@ for id in user_list_unique[0:10]:
     print(topPopRecommender.recommend(id, at=5, remove_seen=False))  # at = # items to recommended
 
 # Test model
-eval.evaluate_algorithm(URM_test, topPopRecommender)
+eval.evaluate_algorithm(URM_test, topPopRecommender, at=5)
 
 # Train removing seen items
 print("\nTop popular recommender removing seen items... ", end="\n")
@@ -65,7 +65,7 @@ topPopRecommender_remove_seen = tp.TopPopRecommender()
 topPopRecommender_remove_seen.fit(URM_train)
 
 for user_id in user_list_unique[0:10]:
-    print(topPopRecommender_remove_seen.recommend(user_id, at=5))
+    print(topPopRecommender_remove_seen.recommend(user_id, at=5, remove_seen=True))
 
 eval.evaluate_algorithm(URM_test, topPopRecommender_remove_seen)
 

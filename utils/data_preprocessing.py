@@ -198,13 +198,14 @@ def flatten_array(array):
 
     return flattened_array
 
-def list_ID_stats(IDList, label):
-    min_val = min(IDList)
-    max_val = max(IDList)
-    unique_val = len(set(IDList))
+def list_ID_stats(ID_list, label):
+    min_val = min(ID_list)
+    max_val = max(ID_list)
+    unique_val = len(set(ID_list))
     missing_val = 1 - unique_val / (max_val - min_val)
 
-    print("{} data, ID: min {}, max {}, unique {}, missing {:.2f} %".format(label, min_val, max_val, unique_val, missing_val))
+    print("{} data, ID: min {}, max {}, unique {}, missig {:.2f} %".format(label, min_val, max_val, unique_val,
+                                                                           missing_val * 100))
 
 # Transforms matrix into a specific format
 def check_matrix(X, format='csc', dtype=np.float32):
@@ -240,3 +241,18 @@ def check_matrix(X, format='csc', dtype=np.float32):
     else:
         return X.astype(dtype)
 
+
+def item_feature_ratios(ICM):
+    # Features per item
+    ICM = sps.csr_matrix(ICM)
+    features_per_item = np.ediff1d(ICM.indptr)  # differences between consecutive elements of an array.
+    print("Features Per Item", features_per_item.shape)
+    features_per_item = np.sort(features_per_item)
+    # data.plot_data(features_per_item, 'ro', 'Features Per Item', 'Num Features', 'Item Index')
+
+    # Items per feature
+    ICM = sps.csc_matrix(ICM)
+    items_per_feature = np.ediff1d(ICM.indptr)
+    print("Items Per Feature", items_per_feature.shape)
+    items_per_feature = np.sort(items_per_feature)
+    # data.plot_data(items_per_feature, 'ro', 'Items Per Feature', 'Num Items', 'Feature Index')
