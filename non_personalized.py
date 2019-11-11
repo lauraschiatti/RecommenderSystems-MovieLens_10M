@@ -13,7 +13,7 @@ user_list, item_list, rating_list, timestamp_list = data.parse_data("ml-10M100K/
 URM = data.csr_sparse_matrix(rating_list, user_list, item_list)
 
 # Statistics on interactions
-# data.display_statistics(user_list, item_list, URM)
+# data.interactions_statistics(user_list, item_list, URM)
 # data.rating_distribution_over_time(timestamp_list)
 
 # Train/test split
@@ -100,7 +100,4 @@ eval.evaluate_algorithm(URM_test_positive_only, globalEffectsRecommender)
 
 # but GlobalEffects performs worse again... why?
 # Sometimes ratings are not really more informative than interactions, depends on their quality
-
-
-
 

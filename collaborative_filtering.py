@@ -9,7 +9,7 @@ from recommenders.collaborative import item_CF_KNN_recommender as item_CF, user_
 
 
 # ------------------------------------------------------------------ #
-##### Collaborative Recommenders: item-item and user-user CF #####
+ ##### Collaborative Recommenders: item-item and user-user CF #####
 # ------------------------------------------------------------------ #
 
 # Load ratings data
@@ -19,9 +19,7 @@ user_list, item_list, rating_list, timestamp_list = data.parse_data("ml-10M100K/
 # Build URM
 URM = data.csr_sparse_matrix(rating_list, user_list, item_list)
 
-# Remove cold items and users (which have no interactions) because they have no impact in the evaluation
-# Moreover, considering how item-item and user-user CF are defined, they are not relevant.
-
+# Remove items and users that have no interactions (cold), they do not provide info and help to reduce computations
 # keep only the warm items also in the ICM
 warm_items_mask = np.ediff1d(URM.tocsc().indptr) > 0
 warm_items = np.arange(URM.shape[1])[warm_items_mask]
@@ -33,7 +31,8 @@ warm_users = np.arange(URM.shape[0])[warm_users_mask]
 URM = URM[warm_users, :]
 
 # Be careful! With this operation we lost the original mapping with item and user IDs!
-# Keep the warm_items and warm_users array, we might need them in future...
+# Important: keep the mask used to remove interactions, we are just keeping some columns
+# (they will have different indices w.r.t to the original matrix)
 
 # Train/test split
 URM_train, URM_test = data.train_test_holdout(URM, train_perc = 0.8)

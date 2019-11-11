@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 #  -*- coding: utf-8 -*-
 
-# data_preprocessing.py: module for loading and preparing data. And displaying some statistics.
+# data_preprocessing.py: module for loading and preparing data. Also for displaying some statistics.
 
 from urllib.request import urlretrieve
 import zipfile, os
 import matplotlib.pyplot as pyplot
 import numpy as np
 import scipy.sparse as sps
+from sklearn import preprocessing
+
 
 def parse_data(file, is_URM):
     print("Loading data ... ", end="\n")
@@ -99,7 +101,7 @@ def csr_sparse_matrix(data, row, col, shape=None):
     return matrix
 
 # Statistics on interactions
-def display_statistics(user_list, item_list, URM):
+def interactions_statistics(user_list, item_list, URM):
     print("\nStatistics ... ")
 
     # Number of interactions in the URM
@@ -256,3 +258,15 @@ def item_feature_ratios(ICM):
     print("Items Per Feature", items_per_feature.shape)
     items_per_feature = np.sort(items_per_feature)
     # data.plot_data(items_per_feature, 'ro', 'Items Per Feature', 'Num Items', 'Feature Index')
+
+
+def label_encoder(list):
+    le = preprocessing.LabelEncoder()  # encodes labels with value between 0 and n_classes-1.
+    le.fit(list)
+    encoded_list = le.transform(list)
+    # print("encoded encoded_list", encoded_list[0:10])
+
+    return encoded_list
+
+
+# def warm_masks():
