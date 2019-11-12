@@ -4,7 +4,7 @@
 from sklearn import preprocessing
 import numpy as np
 
-from utils import data_preprocessing as data, evaluation as eval
+from utils import data_manager as data, evaluation as eval
 from recommenders.collaborative import item_CF_KNN_recommender as item_CF, user_CF_KNN_recommender as user_CF
 
 

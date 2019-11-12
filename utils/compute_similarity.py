@@ -8,7 +8,7 @@ Created on 23/10/17
 import numpy as np
 import time, sys
 import scipy.sparse as sps
-from utils import data_preprocessing as dp
+from utils import data_manager as dp
 
 
 class Compute_Similarity_Python:

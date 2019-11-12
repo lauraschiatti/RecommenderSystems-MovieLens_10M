@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #  -*- coding: utf-8 -*-
 
-from utils import data_preprocessing as data, evaluation as eval
+from utils import data_manager as data, evaluation as eval
 from recommenders import random_recommender as rr, global_effects_recommender as ge, top_popular_recommender as tp
 
 # Build URM

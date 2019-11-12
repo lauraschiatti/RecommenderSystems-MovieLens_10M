@@ -5,7 +5,7 @@
 import numpy as np
 import scipy.sparse as sps
 
-from utils import data_preprocessing as data, evaluation as eval, IR_feature_weighting as fw
+from utils import data_manager as data, evaluation as eval, IR_feature_weighting as fw
 from recommenders import item_CBF_KNN_recommender as item_CBF
 
 

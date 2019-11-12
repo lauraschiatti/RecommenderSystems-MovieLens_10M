@@ -13,10 +13,10 @@ from sklearn import preprocessing
 ################################ LOADING DATA ...  ################################
 
 def parse_data(file, is_URM):
-    print("Loading data ... ", end="\n")
+    print("Loading original data ... ", end="\n")
 
-    matrix_path = download_data(file)
-    matrix_file = open(matrix_path, 'r') # read file's content
+    data_path = extract_data(file)
+    matrix_file = open(data_path, 'r')  # read file's content
 
     if is_URM == True:
         global URM_file
@@ -30,7 +30,8 @@ def parse_data(file, is_URM):
         matrix_tuples.append(row_split(line, is_URM))
 
     # Separate the four columns in different independent lists
-    user_list, item_list, content_list, timestamp_list = zip(*matrix_tuples)  # join tuples together (zip() to map values)
+    user_list, item_list, content_list, timestamp_list = zip(
+        *matrix_tuples)  # join tuples together (zip() to map values)
 
     # Convert values to list
     user_list = list(user_list)
@@ -39,6 +40,44 @@ def parse_data(file, is_URM):
     timestamp_list = list(timestamp_list)
 
     return user_list, item_list, content_list, timestamp_list
+
+
+def extract_data(file):
+    DATASET_URL = "http://files.grouplens.org/datasets/movielens/ml-10m.zip"
+    DATASET_SUBFOLDER = "data/Movielens_10M"
+    DATASET_FILE_NAME = "/movielens_10m.zip"
+
+    try:
+
+        data_file = zipfile.ZipFile(DATASET_SUBFOLDER + DATASET_FILE_NAME)  # open zip file
+
+    except (FileNotFoundError, zipfile.BadZipFile):
+        print("Unable to find data zip file. Downloading...")
+
+        download_from_URL(DATASET_URL, DATASET_SUBFOLDER, DATASET_FILE_NAME)
+
+        data_file = zipfile.ZipFile(DATASET_SUBFOLDER + DATASET_FILE_NAME)  # open zip file
+
+    data_path = data_file.extract(file, path=DATASET_SUBFOLDER)  # extract data
+
+    return data_path
+
+
+def download_from_URL(URL, folder_path, file_name):
+    # If directory does not exist, create
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    print("Downloading: {}".format(URL))
+    print("In folder: {}".format(folder_path + file_name))
+
+    try:
+        urlretrieve(URL, folder_path + file_name)  # copy network object to a local file
+
+    except urllib.request.URLError as urlerror:  # @TODO: handle network connection error
+        print("Unable to complete automatic download, network error")
+        raise urlerror
+
 
 def download_data(file):
     DATASET_URL = "http://files.grouplens.org/datasets/movielens/ml-10m.zip"
