@@ -7,7 +7,7 @@ from utils import data_manager as data, evaluation as eval
 from recommenders.machine_learning import SLIM_BPR_Recommender
 
 # ------------------------------------------------------------------ #
-        			##### SLIM BPR #####
+        			##### SLIM_BPR #####
 # ------------------------------------------------------------------ #
 
 # Load ratings data

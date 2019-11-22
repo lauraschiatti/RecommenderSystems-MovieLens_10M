@@ -2,7 +2,7 @@
 #  -*- coding: utf-8 -*-
 
 from utils import data_manager as data, evaluation as eval
-from recommenders import random_recommender as rr, global_effects_recommender as ge, top_popular_recommender as tp
+from recommenders import RandomRecommender, TopPopularRecommender, GlobalEffectsRecommender
 
 # Build URM
 user_list, item_list, rating_list, timestamp_list = data.parse_data("ml-10M100K/ratings.dat", True)
@@ -28,7 +28,7 @@ user_list_unique = data.remove_duplicates(user_list)
 
 # Train model
 print("\nRandom recommender ... ", end="\n")
-randomRecommender = rr.RandomRecommender()
+randomRecommender = RandomRecommender.RandomRecommender()
 randomRecommender.fit(URM_train)
 
 # Test model
@@ -51,7 +51,7 @@ print("Are recommended items relevant?", isRelevant)
 
 # Train
 print("\nTop popular recommender ... ", end="\n")
-topPopRecommender = tp.TopPopRecommender()
+topPopRecommender = TopPopularRecommender.TopPopRecommender()
 topPopRecommender.fit(URM_train)
 
 # Make k recommendations to 10 users
@@ -63,7 +63,7 @@ eval.evaluate_algorithm(URM_test, topPopRecommender, at=5)
 
 # Train removing seen items
 print("\nTop popular recommender removing seen items... ", end="\n")
-topPopRecommender_remove_seen = tp.TopPopRecommender()
+topPopRecommender_remove_seen = TopPopularRecommender.TopPopRecommender()
 topPopRecommender_remove_seen.fit(URM_train)
 
 for user_id in user_list_unique[0:10]:
@@ -78,7 +78,7 @@ eval.evaluate_algorithm(URM_test, topPopRecommender_remove_seen)
 
 # Train model
 print("\nGlobal effects recommender ... ", end="\n")
-globalEffectsRecommender = ge.GlobalEffectsRecommender()
+globalEffectsRecommender = GlobalEffectsRecommender.GlobalEffectsRecommender()
 globalEffectsRecommender.fit(URM_train)
 eval.evaluate_algorithm(URM_test, globalEffectsRecommender)
 
