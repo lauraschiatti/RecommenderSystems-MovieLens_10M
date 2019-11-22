@@ -93,7 +93,6 @@ print("Item-CBF recommender response_time for 1000 users")
 eval.response_time(n_users_to_test, ICBFKNN_recommender)
 
 
-
 # Parameters tuning
 tuning_param = input("Please choose tuning parameter: "
                      "1 - Shrinking factor "
@@ -117,7 +116,7 @@ if tuning_param == "1": # Shrinkage
 
 elif tuning_param == "2": # IDF weighted-ICM
     # 1. IDF Feature weighting method
-    items_per_feature = (ICM > 0).sum(axis=0)  # how many items have a certain feature
+    items_per_feature = (ICM > 0).sum(axis=0)  # how many items have a certain feature (axis_0: col)
 
     idf = np.array(np.log(num_tot_items / items_per_feature))[0]  # calculate IDF
 

@@ -39,11 +39,18 @@ def MAP(is_relevant, relevant_items):
 
     return map_score
 
+
+# The recommendation algorithm is evaluated by comparing the predicted
+# and the actual ratings in the test set.
+
 def evaluate_algorithm(URM_test, recommender_object, at=5):
     cumulative_precision = 0.0
     cumulative_recall = 0.0
     cumulative_MAP = 0.0
     num_eval = 0
+
+    # predict ratings for left-out ratings only (those in the URM_test)
+    # and compute evaluation metrics on the results
 
     URM_test = sps.csr_matrix(URM_test)
 

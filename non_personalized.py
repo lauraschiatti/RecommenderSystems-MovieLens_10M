@@ -13,7 +13,7 @@ user_list, item_list, rating_list, timestamp_list = data.parse_data("ml-10M100K/
 URM = data.csr_sparse_matrix(rating_list, user_list, item_list)
 
 # Statistics on interactions
-# data.interactions_statistics(user_list, item_list, URM)
+data.interactions_statistics(user_list, item_list, URM)
 # data.rating_distribution_over_time(timestamp_list)
 
 # Train/test split
@@ -29,6 +29,9 @@ print("\nRandom recommender ... ", end="\n")
 randomRecommender = rr.RandomRecommender()
 randomRecommender.fit(URM_train)
 
+# Test model
+eval.evaluate_algorithm(URM_test, randomRecommender)
+
 # Recommendations for a user
 userId = user_list_unique[1]
 recommendedItems = randomRecommender.recommend(userId, at=5)
@@ -38,9 +41,6 @@ relevantItems = eval.get_relevant_items(userId, URM_test) # relevant items for a
 print("Relevant items", relevantItems)
 isRelevant = eval.get_is_relevant(recommendedItems, relevantItems)
 print("Are recommended items relevant?", isRelevant)
-
-# Test model
-eval.evaluate_algorithm(URM_test, randomRecommender)
 
 
 # ------------------------------------------------------------------ #

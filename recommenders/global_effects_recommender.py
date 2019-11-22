@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-# Recommends to all users the highest rated items
+# Recommends to all users the items with highest average rating
+
 class GlobalEffectsRecommender(object):
 
     def fit(self, URM_train):

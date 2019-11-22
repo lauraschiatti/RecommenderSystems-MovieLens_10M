@@ -3,7 +3,7 @@
 
 import numpy as np
 
-import utils.compute_similarity as cs
+import utils.Compute_Similarity_Python as cs
 
 # Recommends to users
 class ItemCBFKNNRecommender(object):

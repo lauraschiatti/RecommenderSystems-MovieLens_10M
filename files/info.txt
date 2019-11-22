@@ -1,6 +1,33 @@
------- Building recommenders ------
+# ----------------------------------------------- #
+     ### BUILDING RECOMMENDER SYSTEMS ###
+# ----------------------------------------------- #
 
-### Two things needed: ###
+Sparse matrices: matrix in which most of the elements are zero ------
+significantly less storage and have less processing time
+
+sparsity = # zero-valued elements / total number of elements
+
+COO stores a list of (row, column, value) tuples.
+
+== Compressed Sparse Row: CSR ==
+- It's similar to COO, but compresses the row indices
+
+- three 1-D arrays
+values ==> nonzero values
+col_ind ==> column index
+row_ptr ==> where values start (list of values index of the 1st non-zero value on each row)
+
+== Compressed Sparse Column: (CSC or CCS) ==
+similar to CSR except that values are read first by column,
+a row index is stored for each value, and column pointers are stored.
+
+(val, row_ind, col_ptr)
+val ==> top-to-bottom, then left-to-right) non-zero values of the matrix
+row_ind ==> row indices corresponding to the values
+col_ptr => list of val indexes where each column starts
+
+
+------ Two things needed: ------
 - 'fit' function to train our model
 - 'recommend' function that uses our model to recommend
 
@@ -13,8 +40,7 @@
     realistic scenario by using test it has never seen. ###
 
 
-
-### Relevant vs. Recommended items ###
+------ Relevant vs. Recommended items ------
 # Relevant items are already known in the data set
 => true rating 𝑟𝑢𝑖 is greater than a given threshold (e.g. 3.5)
 Relevant item: Has a True/Actual rating >= 3.5
@@ -26,8 +52,7 @@ Recommended item: has a predicted rating >= 3.5
 Not recommended item: Has a predicted rating < 3.5
 
 
-
-### Similarity measure ###
+------ Similarity measure ------
 Confidence on similarity value?  if no much support (data to rely on) the value is not reliable.
 
 ## K-Nearest Neighbors
@@ -38,21 +63,7 @@ top-k: for each item, tell no. of items to keep in the similarity matrix. Those 
 Precision@k = (# of recommended items @k that are relevant) / (# of recommended items @k)
 
 
-### Content-based ###
-# Cosine similarity
-
-### Collaborative filtering ###
-# Item-based algorithm (URM x similarity[itemxitem]) => diff ways to define similarity
-# User-based algorithm: compute similarity between users not items (Similarity[userxuser] x URM)
-
-# Select highest values for each item from the similarity matrix?
-All about the way matrix multiplication is performed
-=> in item-based keep top-k for each column. In user-based keep top-k for each row
-=> in the top k for an item it's very likely to have popular items
-
-
-
-### Hyperparameters tuning ###
+------ Hyperparameters tuning ------
 Once we have built our model we can play with its parameters. According to the dataset, they can affect
 performance in different ways
 (1) Number of neighbors: according to datasets it will impact in different ways
@@ -72,3 +83,76 @@ it could have only marginally better or even worse MAP on the test set
 At every time the split (train-test) changes, perform hyperparams tuning
 
 
+
+# ----------------------------------------------- #
+     ### Content-based recommenders ###
+# ----------------------------------------------- #
+
+# Cosine similarity
+
+
+# ----------------------------------------------- #
+    ### Collaborative fitering recommenders ###
+# ----------------------------------------------- #
+
+# Item-based algorithm (URM x similarity[itemxitem])
+    => estimate ratings based on similarity with other items the user rated
+
+# User-based algorithm:
+    => compute similarity between users not items (Similarity[userxuser] x URM)
+
+# Select highest values for each item from the similarity matrix?
+All about the way matrix multiplication is performed
+=> in item-based keep top-k for each column. In user-based keep top-k for each row
+=> in the top k for an item it's very likely to have popular items
+
+
+
+# ------------------------------------------------------------------- #
+   ### Estimating ratings as optimization problem - ML approaches ###
+# ------------------------------------------------------------------- #
+
+for top-N recommendation ..
+
+# ML approach to item-based CF
+
+SLIM (Sparse LInear Method)
+     => optimize MSE + early stopping
+     => minimize MSE: find similarity matrix between items so as to minimize the error function (rating approach)
+
+BPR (Bayesian Probabilistic Ranking)
+    => optimize probabilities + early stopping
+    => maximize AUC optimize an accuracy metric directly
+
+
+In order to implement a SLIM_BPR we need to:
+# ------------------------------------------
+
+- Initialize the model:
+    # with SLIM works better to initialize S as zero
+    # MF you cannot because of how the gradient is computed and you have to initialize at random.
+
+- Randomly sample the triplets (user, positive_item, negative_item)
+                                      -------------  -------------
+                                        user likes  user doesn't like
+
+- Compute the score of each triplet:
+    - The prediction depends on the model: SLIM, Matrix Factorization ...
+
+
+- Update the similarity matrix
+
+    Gradient descent
+    ---------------
+        # Optimization algorithm for finding the local minimum of a function
+        # Depends on the objective function
+
+
+    Update model
+    -------------
+        # How to update depends on the model itself,
+            - In SLIM_BPR there's one param, the similarity matrix, so we perform just one update.
+            - In MF we have two.
+
+        # We need a learning rate, which influences how fast the model will change.
+            - Small ones lead to slower convergence but often higher results
