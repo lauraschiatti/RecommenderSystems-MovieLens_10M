@@ -20,6 +20,8 @@ data.interactions_statistics(user_list, item_list, URM)
 URM_train, URM_test = data.train_test_holdout(URM, train_perc = 0.8)
 user_list_unique = data.remove_duplicates(user_list)
 
+
+
 # ------------------------------------------------------------------ #
                 ##### Random Recommender #####
 # ------------------------------------------------------------------ #
@@ -78,14 +80,15 @@ eval.evaluate_algorithm(URM_test, topPopRecommender_remove_seen)
 print("\nGlobal effects recommender ... ", end="\n")
 globalEffectsRecommender = ge.GlobalEffectsRecommender()
 globalEffectsRecommender.fit(URM_train)
+eval.evaluate_algorithm(URM_test, globalEffectsRecommender)
 
-# Test model
-# Remark: why is GlobalEffect performing worse than TopPop even if we are taking into account
+# GlobalEffects vs TopPop
+# NOTE: why is GlobalEffect performing worse than TopPop even if we are taking into account
 # more information about the interaction?
 
-# The test data contains a lot of low rating interactions...
-# We are testing against those as well, but GlobalEffects is penalizing interactions with low rating
-# In reality we want to recommend items rated in a positive way, so let's build a new Test set with positive interactions only
+# NOTE: The test data contains a lot of low rating interactions, those interactions are penalized by GlobalEffects
+# In reality we want to recommend items rated in a positive way,
+#  so let's build a new Test set with positive interactions only
 URM_test_positive_only = URM_test.copy()
 URM_test_positive_only.data[URM_test.data<=2] = 0
 URM_test_positive_only.eliminate_zeros()
@@ -95,7 +98,7 @@ print("Deleted {} negative interactions".format(URM_test.nnz - URM_test_positive
 print("evaluation of TopPopRecommender with URM_test_positive_only: ")
 eval.evaluate_algorithm(URM_test_positive_only, topPopRecommender)
 
-print("evaluation of globalEffectsRecommender with URM_test_positive_only: ")# Sometimes ratings are not really more informative than interactions, depends on their quality
+print("evaluation of globalEffectsRecommender with URM_test_positive_only: ")
 eval.evaluate_algorithm(URM_test_positive_only, globalEffectsRecommender)
 
 # but GlobalEffects performs worse again... why?
