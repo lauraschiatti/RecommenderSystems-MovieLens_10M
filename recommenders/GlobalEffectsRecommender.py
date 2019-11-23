@@ -5,7 +5,7 @@ import numpy as np
 # Recommends to all users the items with highest average rating
 
 class GlobalEffectsRecommender(object):
-
+    # works for explicit ratings
     def fit(self, URM_train):
         self.URM_train = URM_train
 
@@ -17,40 +17,42 @@ class GlobalEffectsRecommender(object):
         URM_train_unbiased.data -= mu
 
         # 2) user average bias: average rating for each user
-        # NOTE: user bias is essential in case of rating prediction
-        #   but not relevant in case of TopN recommendations.
-        user_mean_rating = URM_train_unbiased.mean(axis=1)
-        user_mean_rating = np.array(user_mean_rating).squeeze()
+        # NOTE: user bias is essential in case of rating prediction, but not relevant in case of TopN recommendations.
 
-        # NOTE: plotting
-        # user_mean_rating = np.sort(user_mean_rating[user_mean_rating != 0.0])
-        # data.plot_data(user_mean_rating, 'ro', 'User Mean Rating', 'User Bias', 'User Index')
+        user_bias = URM_train_unbiased.mean(axis=1)
+        user_bias = np.array(user_bias).squeeze()
 
         # remove usr bias from the URM (subs mu to all ratings)
-        for user_id in range(len(user_mean_rating)):
+        for user_id in range(len(user_bias)):
             start_position = URM_train_unbiased.indptr[user_id]
             end_position = URM_train_unbiased.indptr[user_id + 1]
 
-            URM_train_unbiased.data[start_position:end_position] -= user_mean_rating[user_id]
+            URM_train_unbiased.data[start_position:end_position] -= user_bias[user_id]
 
 
         # 3) item average bias: average rating for each item
-        item_mean_rating = URM_train_unbiased.mean(axis=0)
-        item_mean_rating = np.array(item_mean_rating).squeeze()
-
-        # NOTE: plotting
-        # item_mean_rating = np.sort(item_mean_rating[item_mean_rating != 0])
-        # data.plot_data(item_mean_rating, 'ro', 'Item Mean Rating', 'Item Bias', 'Item Index')
+        item_bias = URM_train_unbiased.mean(axis=0)
+        item_bias = np.array(item_bias).squeeze()
 
         # 4) precompute the item ranking
-        self.best_rated_items = np.argsort(item_mean_rating)
+        self.best_rated_items = np.argsort(item_bias)
         self.best_rated_items = np.flip(self.best_rated_items, axis=0)
+
+        # NOTE: plotting
+        # user_bias = np.sort(user_bias[user_bias != 0.0])
+        # data.plot_data(user_bias, 'ro', 'User Mean Rating', 'User Bias', 'User Index')
+
+        # NOTE: plotting
+        # item_bias = np.sort(item_bias[item_bias != 0])
+        # data.plot_data(item_bias, 'ro', 'Item Mean Rating', 'Item Bias', 'Item Index')
 
 
     def recommend(self, user_id, at=5, remove_seen=True):
-        # Sort the items by their itemBias and use the same recommendation principle as in TopPop
+        # Sort the items by their item_bias and use the same recommendation principle as in TopPop
+        user_seen_items = self.URM_train[user_id].indices
+
         if remove_seen:
-            unseen_items_mask = np.in1d(self.best_rated_items, self.URM_train[user_id].indices,
+            unseen_items_mask = np.in1d(self.best_rated_items, user_seen_items,
                                         assume_unique=True, invert=True)
 
             unseen_items = self.best_rated_items[unseen_items_mask]

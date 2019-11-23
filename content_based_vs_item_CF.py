@@ -5,7 +5,7 @@
 import numpy as np
 
 from utils import data_manager as data, evaluation as eval
-from recommenders import item_CBF_KNN_recommender as item_CBF
+from recommenders import ItemCBFKNNRecommender as item_CBF
 from recommenders.collaborative import item_CF_KNN_recommender as item_CF
 
 

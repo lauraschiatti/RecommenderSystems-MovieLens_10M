@@ -21,7 +21,7 @@ class TopPopRecommender(object):
         if remove_seen: #  always remove seen items if your purpose is to recommend "new" ones
 
             # seen items: those the user already interacted with
-            user_seen_items =self.URM_train[user_id].indices
+            user_seen_items = self.URM_train[user_id].indices
             unseen_items_mask = np.in1d(self.popular_items, user_seen_items,
                                       assume_unique=True, invert=True)
 

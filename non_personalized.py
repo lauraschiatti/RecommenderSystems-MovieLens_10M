@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #  -*- coding: utf-8 -*-
 
-from utils import data_manager as data, evaluation as eval
+from utils import data_manager as data, evaluation as eval, masks
 from recommenders import RandomRecommender, TopPopularRecommender, GlobalEffectsRecommender
 
 # Build URM
@@ -86,16 +86,9 @@ eval.evaluate_algorithm(URM_test, globalEffectsRecommender)
 # why is GlobalEffect performing worse than TopPop even if we are taking into account
 # more information about the interaction?
 
-# NOTE: The test data contains a lot of low rating interactions (<= 2),
-# those interactions are penalized by GlobalEffects
-# In reality we want to recommend items rated in a positive way (> 2 explicit rating),
-# so let's build a new Test set with positive interactions only
-
-# Remove low rating interactions (<=2 values) from the URM_test,
-# now .data contains only values > 2 (positive interactions)
-URM_test_positive_only = URM_test.copy()
-URM_test_positive_only.data[URM_test.data<=2] = 0  # set to 0 low interactions
-URM_test_positive_only.eliminate_zeros()  # remove the explicit zeros.
+# NOTE: Remove low rating interactions (<=2 values) from the URM_test,
+# low interactions are penalized by GlobalEffects
+URM_test_positive_only = masks.get_positive_interations_only(URM_test, threshold=2)
 
 print("Deleted {} negative interactions".format(URM_test.nnz - URM_test_positive_only.nnz))
 
