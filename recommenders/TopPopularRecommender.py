@@ -2,7 +2,7 @@
 #  -*- coding: utf-8 -*-
 import numpy as np
 
-# Recommends to all users the most popular items, those with the highest number of interactions (ratings)
+# Recommends the top 5 (at) most popular items to each user (highest number of interactions)
 
 class TopPopRecommender(object):
     # model is the item popularity

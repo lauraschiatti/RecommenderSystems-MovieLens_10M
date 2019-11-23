@@ -32,7 +32,8 @@ def parse_data(file, is_URM):
     # Separate the four columns in different independent lists
     user_list, item_list, content_list, timestamp_list = zip(*matrix_tuples)  # join tuples together
 
-    # Convert values to list
+
+    # Create lists of all users, items and contents (ratings)
     user_list = list(user_list)
     item_list = list(item_list)
     content_list = list(content_list)
@@ -180,6 +181,8 @@ def label_encoder(list):
 
     return encoded_list
 
+
+
 ################################ STATISTICS ...  ################################
 
 def plot_data(data, marker, title, y_label, x_label):
@@ -189,7 +192,7 @@ def plot_data(data, marker, title, y_label, x_label):
     pyplot.xlabel(x_label)
     pyplot.show()
 
-def interactions_statistics(user_list, item_list, URM):
+def get_statistics_URM(user_list, item_list, URM):
     print("\nStatistics ... ")
 
     # Number of interactions in the URM
@@ -308,24 +311,33 @@ def item_feature_ratios(ICM):
 
 # Train/test split
 def train_test_holdout(URM, train_perc=0.8):
-    num_interactions = URM.nnz  # number of nonzero values
 
-    URM = URM.tocoo()
+    number_interactions = URM.nnz  # number of nonzero values
+    URM = URM.tocoo()  # Coordinate list matrix (COO)
     shape = URM.shape
 
-    # URM.data: ratingList, URM.row: user_list, URM.col: item_list
+    #  URM.row: user_list, URM.col: item_list, URM.data: rating_list
 
-    # Take random samples of data. Use random boolean mask
-    train_mask = np.random.choice([True, False], num_interactions, p=[train_perc, 1 - train_perc]) # p train_perc for True and 1-train_perc for Fase
-    URM_train = csr_sparse_matrix(URM.data[train_mask], URM.row[train_mask], URM.col[train_mask], shape=shape)
+    # Sampling strategy: take random samples of data using a boolean mask
+    train_mask = np.random.choice(
+        [True, False],
+        number_interactions,
+        p=[train_perc, 1 - train_perc])  # train_perc for True, 1-train_perc for False
 
-    test_mask = np.logical_not(train_mask) # Compute the truth value of NOT x element-wise.
-    URM_test = csr_sparse_matrix(URM.data[test_mask], URM.row[test_mask], URM.col[test_mask], shape=shape)
+    URM_train = csr_sparse_matrix(URM.data[train_mask],
+                                  URM.row[train_mask],
+                                  URM.col[train_mask],
+                                  shape=shape)
+
+    test_mask = np.logical_not(train_mask)  # remaining samples
+    URM_test = csr_sparse_matrix(URM.data[test_mask],
+                                 URM.row[test_mask],
+                                 URM.col[test_mask],
+                                 shape=shape)
 
     return URM_train, URM_test
 
 
-# @TODO: build urm and icm methods
 
 # @TODO: method for warm masks
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-# Doesn't have anything to learn from the data
+# Doesn't have anything to learn from the data: recommend at random items to each user
 class RandomRecommender(object):
 
     def fit(self, URMTrain):
